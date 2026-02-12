@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Subject Quiz Competition</title>
+  <style>
+    body { font-family: Arial; text-align: center; background-color: #f4f6f9; padding: 20px; }
+    h1 { color: #333; }
+    .question { font-size: 20px; margin: 20px 0; }
+    .btn { display: block; margin: 10px auto; padding: 10px; width: 250px; border: none; background-color: #4CAF50; color: white; font-size: 16px; border-radius: 5px; }
+    .btn:hover { background-color: #45a049; }
+    .result { text-align: left; margin-top: 20px; background: white; padding: 15px; border-radius: 8px; }
+    .correct { color: green; }
+    .wrong { color: red; }
+    select { padding: 10px; font-size: 16px; margin-bottom: 20px; }
+  </style>
+</head>
+<body>
+
+<h1>Subject Quiz Competition</h1>
+<div id="subjectSelection">
+  <p>Select a subject to start:</p>
+  <select id="subject">
+    <option value="Physics">Physics</option>
+    <option value="Math">Math</option>
+    <option value="Chemistry">Chemistry</option>
+    <option value="Geography">Geography</option>
+    <option value="Literature">Literature</option>
+  </select>
+  <button class="btn" onclick="startQuiz()">Start Quiz</button>
+</div>
+
+<div id="quiz"></div>
+
+<script>
+// --- QUESTION DATABASE ---
+const allQuestions = [
+  {question:"Force = mass x ?", options:["Velocity","Acceleration","Energy"], correct:1, difficulty:"easy", subject:"Physics"},
+  {question:"5+3=?", options:["6","8","10"], correct:1, difficulty:"easy", subject:"Math"},
+  {question:"H2O is?", options:["Oxygen","Water","Hydrogen"], correct:1, difficulty:"easy", subject:"Chemistry"},
+  {question:"Integrate x^2 dx?", options:["x^3/3","x^2/2","2x"], correct:0, difficulty:"hard", subject:"Math"},
+  {question:"Capital of Uganda?", options:["Mbale","Kampala","Gulu"], correct:1, difficulty:"medium", subject:"Geography"},
+  {question:"Who wrote Hamlet?", options:["Shakespeare","Tolstoy","Hemingway"], correct:0, difficulty:"medium", subject:"Literature"},
+  {question:"Derivative of x^3?", options:["3x^2","x^2","3x"], correct:0, difficulty:"hard", subject:"Math"},
+  {question:"Einstein is famous for?", options:["Relativity","Gravity","Evolution"], correct:0, difficulty:"hard", subject:"Physics"},
+  {question:"Solve: 2x-5=9", options:["x=7","x=2","x=5"], correct:0, difficulty:"medium", subject:"Math"},
+  {question:"Largest ocean on Earth?", options:["Atlantic","Indian","Pacific"], correct:2, difficulty:"medium", subject:"Geography"}
+];
+
+// --- SETTINGS ---
+const GROUP_SIZE = 10;
+const HARD_PER_GROUP = 2;
+
+let currentGroup = [];
+let currentQuestionIndex = 0;
+let score = 0;
+let userAnswers = [];
+let startTime = 0;
+let endTime = 0;
+
+function startQuiz(){
+  const subject = document.getElementById("subject").value;
+  document.getElementById("subjectSelection").style.display = "none";
+  generateGroup(subject);
+  startTime = Date.now();
+  showQuestion();
+}
+
+// Generate group based on selected subject
+function generateGroup(subject){
+  let subjectQuestions = allQuestions.filter(q => q.subject === subject);
+  let hardQuestions = subjectQuestions.filter(q => q.difficulty==="hard");
+  let easyMediumQuestions = subjectQuestions.filter(q => q.difficulty!=="hard");
+
+  let group = [];
+
+  // Pick HARD_PER_GROUP hard questions
+  for(let i=0;i<HARD_PER_GROUP && hardQuestions.length>0;i++){
+    let randIndex = Math.floor(Math.random()*hardQuestions.length);
+    group.push(hardQuestions[randIndex]);
+    hardQuestions.splice(randIndex,1);
+  }
+
+  // Fill rest of group with easy/medium
+  while(group.length<GROUP_SIZE && easyMediumQuestions.length>0){
+    let randIndex = Math.floor(Math.random()*easyMediumQuestions.length);
+    group.push(easyMediumQuestions[randIndex]);
+    easyMediumQuestions.splice(randIndex,1);
+  }
+
+  currentGroup = group.sort(()=>Math.random()-0.5);
+}
+
+function showQuestion(){
+  const quiz = document.getElementById("quiz");
+  const q = currentGroup[currentQuestionIndex];
+  quiz.innerHTML = "<div class='question'>"+q.question+"</div>";
+  q.options.forEach((opt,i)=>{
+    quiz.innerHTML += "<button class='btn' onclick='checkAnswer("+i+")'>"+opt+"</button>";
+  });
+}
+
+function checkAnswer(index){
+  userAnswers.push(index);
+  if(index === currentGroup[currentQuestionIndex].correct){ score++; }
+  currentQuestionIndex++;
+  if(currentQuestionIndex < currentGroup.length){ showQuestion(); }
+  else{ 
+    endTime = Date.now();
+    showResults(); 
+  }
+}
+
+function showResults(){
+  const quiz = document.getElementById("quiz");
+  let timeTaken = ((endTime-startTime)/1000).toFixed(2);
+  let resultHTML = "<h2>Your Score: "+score+"/"+currentGroup.length+"</h2>";
+  resultHTML += "<h3>Time Taken: "+timeTaken+" seconds</h3>";
+  resultHTML += "<div class='result'>";
+  currentGroup.forEach((q,i)=>{
+    const userAnswer = q.options[userAnswers[i]];
+    const correctAnswer = q.options[q.correct];
+    if(userAnswers[i]===q.correct){
+      resultHTML += "<p class='correct'>Question "+(i+1)+": Correct ✔<br>Your Answer: "+userAnswer+"</p>";
+    }else{
+      resultHTML += "<p class='wrong'>Question "+(i+1)+": Wrong ✘<br>Your Answer: "+userAnswer+"<br>Correct Answer: "+correctAnswer+"</p>";
+    }
+  });
+  resultHTML += "</div>";
+  quiz.innerHTML = resultHTML;
+}
+</script>
+
+</body>
+</html>""
