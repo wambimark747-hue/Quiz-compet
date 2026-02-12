@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Quiz Competition</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; max-width: 800px; margin: auto; }
+    h1 { text-align: center; }
+    .hidden { display: none; }
+    .question { margin-bottom: 15px; }
+    button { padding: 10px 15px; margin-top: 10px; }
+  </style>
+</head>
+<body>
+
+<h1>Quiz Competition</h1>
+
+<div id="startDiv">
+  <label for="subject">Choose a subject:</label>
+  <select id="subject">
+    <option value="Physics">Physics</option>
+    <option value="Math">Math</option>
+    <option value="Chemistry">Chemistry</option>
+  </select>
+  <button onclick="startQuiz()">Start Quiz</button>
+</div>
+
+<div id="quizDiv" class="hidden">
+  <div id="questionContainer"></div>
+  <button onclick="nextQuestion()">Next</button>
+</div>
+
+<div id="resultDiv" class="hidden">
+  <h2>Quiz Completed!</h2>
+  <p id="scoreText"></p>
+  <p id="timeText"></p>
+  <div id="answersDiv"></div>
+</div>
+
+<script>
+  const questionsDB = {
+    Physics: [
+      { q: "Force = mass × ?", options: ["Velocity", "Acceleration", "Time", "Energy"], answer: 1, difficulty: "easy" },
+      { q: "Newton's 2nd law formula?", options: ["F=ma", "E=mc²", "V=IR", "p=mv"], answer: 0, difficulty: "hard" },
+      { q: "Energy unit?", options: ["Joule", "Newton", "Watt", "Pascal"], answer: 0, difficulty: "easy" },
+      { q: "Gravitational constant symbol?", options: ["G", "g", "R", "M"], answer: 0, difficulty: "hard" },
+      { q: "Speed of light?", options: ["3x10⁸ m/s", "9.8 m/s²", "1.6x10⁻¹⁹ C", "6.6x10⁻³⁴ Js"], answer: 0, difficulty: "easy" }
+    ],
+    Math: [
+      { q: "2+2=?", options: ["3","4","5","6"], answer: 1, difficulty:"easy" },
+      { q: "Integral of x dx?", options:["x²","x²/2","2x","x"], answer:1, difficulty:"hard" },
+      { q: "Derivative of sin(x)?", options:["cos(x)","-cos(x)","sin(x)","-sin(x)"], answer:0, difficulty:"easy" },
+      { q: "Solve 2x+3=7", options:["1","2","3","4"], answer:1, difficulty:"easy" },
+      { q: "Limit of 1/x as x→0", options:["0","∞","1","-∞"], answer:1, difficulty:"hard" }
+    ],
+    Chemistry: [
+      { q: "H2O is?", options:["Oxygen","Water","Hydrogen","Salt"], answer:1, difficulty:"easy" },
+      { q: "Atomic number of Carbon?", options:["6","12","14","8"], answer:0, difficulty:"easy" },
+      { q: "pH of neutral solution?", options:["0","7","14","1"], answer:1, difficulty:"easy" },
+      { q: "Avogadro's number?", options:["6.02x10²³","3.14","9.8","1.6x10⁻¹⁹"], answer:0, difficulty:"hard" },
+      { q: "Strongest acid?", options:["HCl","H2SO4","HF","HNO3"], answer:1, difficulty:"hard" }
+    ]
+  };
+
+  let currentQuestions = [];
+  let currentIndex = 0;
+  let score = 0;
+  let startTime;
+
+  function shuffleArray(arr) {
+    return arr.sort(() => Math.random() - 0.5);
+  }
+
+  function startQuiz() {
+    const subject = document.getElementById('subject').value;
+    const allQuestions = questionsDB[subject];
+    const hardQuestions = allQuestions.filter(q=>q.difficulty==="hard");
+    const easyQuestions = allQuestions.filter(q=>q.difficulty!=="hard");
+    currentQuestions = shuffleArray(hardQuestions).slice(0,2).concat(shuffleArray(easyQuestions).slice(0,8));
+    currentQuestions = shuffleArray(currentQuestions);
+    currentIndex = 0;
+    score = 0;
+    startTime = new Date();
+    document.getElementById('startDiv').classList.add('hidden');
+    document.getElementById('quizDiv').classList.remove('hidden');
+    showQuestion();
+  }
+
+  function showQuestion() {
+    const q = currentQuestions[currentIndex];
+    const container = document.getElementById('questionContainer');
+    container.innerHTML = `<div class="question"><strong>Q${currentIndex+1}:</strong> ${q.q}</div>`;
+    q.options.forEach((opt,i)=>{
+      container.innerHTML += `<div><input type="radio" name="answer" value="${i}"> ${opt}</div>`;
+    });
+  }
+
+  function nextQuestion() {
+    const selected = document.querySelector('input[name="answer"]:checked');
+    if(!selected){ alert("Please select an answer."); return; }
+    if(parseInt(selected.value) === currentQuestions[currentIndex].answer){ score++; }
+    currentIndex++;
+    if(currentIndex >= currentQuestions.length){ showResult(); } 
+    else{ showQuestion(); }
+  }
+
+  function showResult() {
+    const endTime = new Date();
+    const totalSeconds = Math.floor((endTime - startTime)/1000);
+    document.getElementById('quizDiv').classList.add('hidden');
+    document.getElementById('resultDiv').classList.remove('hidden');
+    document.getElementById('scoreText').innerText = `Score: ${score} / ${currentQuestions.length}`;
+    document.getElementById('timeText').innerText = `Time taken: ${totalSeconds} seconds`;
+    
+    const answersDiv = document.getElementById('answersDiv');
+    answersDiv.innerHTML = "<h3>Correct Answers:</h3>";
+    currentQuestions.forEach((q,i)=>{
+      answersDiv.innerHTML += `<div>Q${i+1}: ${q.options[q.answer]}</div>`;
+    });
+  }
+</script>
+
+</body>
+</html>
