@@ -1,0 +1,2 @@
+# Quiz-compet
+Daily quizzes
